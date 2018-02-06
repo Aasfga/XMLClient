@@ -1,60 +1,15 @@
 package Storage;
 
+import javax.xml.bind.JAXBException;
 import java.io.IOException;
-import java.net.ConnectException;
+import java.nio.file.FileAlreadyExistsException;
 import java.util.Collection;
-import java.util.List;
 
 public interface Provider
 {
-    Collection<String> getFileNames() throws DownloadException;
+    Collection<FileInfo> getFileNames() throws IOException;
 
-    void uploadFile(String filename, byte file[]) throws UploadException;
+    boolean uploadFile(FileInfo info, byte[] file) throws IOException, JAXBException;
 
-    byte[] downloadFile(String filename) throws DownloadException;
-
-
-    class DownloadException extends IOException
-    {
-        public DownloadException()
-        {
-        }
-
-        public DownloadException(String message)
-        {
-            super(message);
-        }
-
-        public DownloadException(String message, Throwable cause)
-        {
-            super(message, cause);
-        }
-
-        public DownloadException(Throwable cause)
-        {
-            super(cause);
-        }
-    }
-
-    class UploadException extends IOException
-    {
-        public UploadException()
-        {
-        }
-
-        public UploadException(String message)
-        {
-            super(message);
-        }
-
-        public UploadException(String message, Throwable cause)
-        {
-            super(message, cause);
-        }
-
-        public UploadException(Throwable cause)
-        {
-            super(cause);
-        }
-    }
+    byte[] downloadFile(FileInfo info) throws IOException;
 }

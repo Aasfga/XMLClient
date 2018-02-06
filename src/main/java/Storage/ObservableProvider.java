@@ -3,6 +3,7 @@ package Storage;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,8 +11,8 @@ import java.util.Collection;
 public class ObservableProvider implements Provider
 {
 
-    Provider provider;
-    ObservableList<String> list = FXCollections.observableList(new ArrayList<>());
+    private Provider provider;
+    private ObservableList<FileInfo> list = FXCollections.observableList(new ArrayList<>());
 
     public ObservableProvider(Provider provider)
     {
@@ -19,27 +20,29 @@ public class ObservableProvider implements Provider
     }
 
     @Override
-    public Collection<String> getFileNames() throws DownloadException
+    public Collection<FileInfo> getFileNames() throws IOException
     {
         return provider.getFileNames();
     }
 
     @Override
-    public void uploadFile(String filename, byte[] file) throws UploadException
+    public boolean uploadFile(FileInfo info, byte[] file) throws IOException, JAXBException
     {
-        provider.uploadFile(filename, file);
-        list.add(filename);
+        boolean res = provider.uploadFile(info, file);
+        if(res)
+            list.add(info);
+        return res;
     }
 
     @Override
-    public byte[] downloadFile(String filename) throws DownloadException
+    public byte[] downloadFile(FileInfo info) throws IOException
     {
-        return provider.downloadFile(filename);
+        return provider.downloadFile(info);
     }
 
-    public ObservableList<String> getList()
+    public ObservableList<FileInfo> getList()
     {
-        return list;
+        return list.sorted();
     }
 
     public void refresh() throws Exception

@@ -1,13 +1,11 @@
 package Storage;
 
-import java.util.Collection;
-import java.util.Random;
-import java.util.Set;
-import java.util.TreeSet;
+import java.io.IOException;
+import java.util.*;
 
 public class ExampleProvider implements Provider
 {
-    Set<String> files = new TreeSet<>();
+    private Map<FileInfo, byte[]> files = new TreeMap<>();
     static private Random random = new Random();
 
     private static String generateWord(int length)
@@ -20,37 +18,43 @@ public class ExampleProvider implements Provider
         return builder.toString();
     }
 
+    public ExampleProvider()
     {
         for(int i = 1 + random.nextInt(10); i >= 0; i--)
-            files.add(generateWord(1 + random.nextInt(10)) + ".xml");
-    }
-    @Override
-    public Collection<String> getFileNames()
-    {
-        return files;
+            files.put(new FileInfo(generateWord(1 + random.nextInt(10)) + ".xml",
+                    new GregorianCalendar()), generateWord(20 + random.nextInt(20)).getBytes());
     }
 
     @Override
-    public void uploadFile(String filename, byte[] file) throws UploadException
+    public Collection<FileInfo> getFileNames()
     {
-        if(random.nextInt(10) < 2)
-            throw new UploadException();
-        if(filename == null)
-            throw new NullPointerException();
-        if(!files.contains(filename))
-            files.add(filename);
+        return files.keySet();
     }
 
     @Override
-    public byte[] downloadFile(String filename) throws DownloadException
+    public boolean uploadFile(FileInfo info, byte[] file) throws IOException
     {
         if(random.nextInt(10) < 2)
-            throw new DownloadException();
-        if(filename == null)
+            throw new IOException("Connection error. Try again");
+        if(info == null)
             throw new NullPointerException();
-        if(files.contains(filename))
-            return new byte[]{10, 10, 10};
+
+        if(!files.containsKey(info))
+        {
+            files.put(info, file);
+            return true;
+        }
         else
-            throw new DownloadException();
+            return false;
+    }
+
+    @Override
+    public byte[] downloadFile(FileInfo info) throws IOException
+    {
+        if(random.nextInt(10) < 2)
+            throw new IOException("Connection error. Try again");
+        if(info == null)
+            throw new NullPointerException();
+        return files.getOrDefault(info, null);
     }
 }

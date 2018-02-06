@@ -1,5 +1,6 @@
 import App.Controller;
 import Storage.ExampleProvider;
+import Storage.FileProvider;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
@@ -13,7 +14,7 @@ public class Main extends Application
     @Override
     public void start(Stage primaryStage) throws Exception
     {
-        new Controller(new ExampleProvider(), new ExampleProvider()).start(primaryStage);
+        new Controller(new FileProvider(), new ExampleProvider()).start(primaryStage);
     }
 
     public static void main(String[] args)
