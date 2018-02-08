@@ -1,6 +1,5 @@
 package Storage;
 
-import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -32,11 +31,9 @@ public class FileProvider implements Provider
     }
 
     @Override
-    public boolean uploadFile(FileInfo info, byte[] file) throws IOException
+    public void uploadFile(String filename, byte[] file) throws IOException
     {
-            boolean result = !Files.exists(Paths.get("files/" + info.getFilename()));
-            Files.write(Paths.get("files/" + info.getFilename()), file);
-            return result;
+            Files.write(Paths.get("files/" + filename), file);
     }
 
     @Override
