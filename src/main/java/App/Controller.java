@@ -23,7 +23,7 @@ import java.util.logging.Logger;
 
 public class Controller
 {
-    private static Logger logger = Logger.getLogger("Controller");
+    static Logger logger = Logger.getLogger("Controller");
 
     static
     {
@@ -40,7 +40,7 @@ public class Controller
     private FileView clientView;
     private FileView serverView;
     private View view;
-
+    private Stage stage;
 
     public Controller(Provider clientProvider, Provider serverProvider)
     {
@@ -64,7 +64,10 @@ public class Controller
         };
     }
 
-    private static EventHandler<MouseEvent> buttonEventGenerator(ObservableProvider sender, FileView senderView, ObservableProvider receiver, View view)
+    private static EventHandler<MouseEvent> buttonEventGenerator(ObservableProvider sender,
+                                                                 FileView senderView,
+                                                                 ObservableProvider receiver,
+                                                                 View view)
     {
         return event -> {
             byte file[];
@@ -107,13 +110,13 @@ public class Controller
 
     }
 
-    private void setVariables(Stage stage) throws Exception
+    private void setVariables() throws Exception
     {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("view.fxml"));
         Parent root = loader.load();
         stage.setScene(new Scene(root, 600, 430));
         view = loader.getController();
-        clientView = new FileView(view.refreshClient, view.clientFiles, SimpleCellFactory.getFactory());
+        clientView = new FileView(view.refreshClient, view.clientFiles, new FileSystemCellFactory(this));
         clientView.setObservableList(clientProvider.getList());
         serverView = new FileView(view.refreshServer, view.serverFiles, DataCellFactory.getFactory());
         serverView.setObservableList(serverProvider.getList());
@@ -121,24 +124,46 @@ public class Controller
 
     public void start(Stage stage) throws Exception
     {
-        setVariables(stage);
+        this.stage = stage;
+        setVariables();
         setHandlers();
         stage.setResizable(false);
         stage.show();
     }
 
 
-    static class SimpleCellFactory implements FileView.CellFactory
+    static class FileSystemCellFactory implements FileView.CellFactory
     {
-        private static SimpleCellFactory factory = new SimpleCellFactory();
+        Controller app;
 
-        private SimpleCellFactory()
+        public FileSystemCellFactory(Controller app)
         {
+            this.app = app;
         }
 
-        static SimpleCellFactory getFactory()
+        private void createEditView(String filename)
         {
-            return factory;
+            try
+            {
+                FXMLLoader loader = new FXMLLoader(Controller.class.getResource("edit_view.fxml"));
+                Parent root = loader.load();
+                EditController controller = loader.getController();
+                controller.setFilename(filename);
+                controller.refresh();
+                Stage stage = new Stage();
+                stage.setResizable(false);
+                stage.setScene(new Scene(root, 600, 400));
+                stage.setOnCloseRequest(closeEvent -> {
+                    stage.close();
+                    app.start();
+                });
+                app.hide();
+                stage.show();
+            }
+            catch(IOException e)
+            {
+                logger.warning(e.getMessage());
+            }
         }
 
         @Override
@@ -154,9 +179,17 @@ public class Controller
                     {
                         setGraphic(null);
                         setText(null);
+                        setOnMouseClicked(event -> {
+                        });
                     }
                     else
+                    {
                         setText(item.getFilename());
+                        setOnMouseClicked(event -> {
+                            if(event.getClickCount() == 2)
+                                createEditView(item.getFilename());
+                        });
+                    }
                 }
             };
         }
@@ -210,4 +243,13 @@ public class Controller
         }
     }
 
+    public void hide()
+    {
+        stage.hide();
+    }
+
+    public void start()
+    {
+        stage.show();
+    }
 }
