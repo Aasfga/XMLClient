@@ -47,6 +47,6 @@ public class FileInfo implements Comparable<FileInfo>
     @Override
     public int compareTo(FileInfo o)
     {
-        return filename.equals(o.filename) ? date.compareTo(o.date) : filename.compareTo(o.filename);
+        return filename.equals(o.filename) ? o.date.compareTo(date) : filename.compareTo(o.filename);
     }
 }

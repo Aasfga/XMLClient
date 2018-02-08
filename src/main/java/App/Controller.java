@@ -78,7 +78,7 @@ public class Controller
             try
             {
                 file = sender.downloadFile(info);
-                receiver.uploadFile(info, file);
+                receiver.uploadFile(info.getFilename(), file);
                 view.hideError();
             }
             catch(FileAlreadyExistsException e)
