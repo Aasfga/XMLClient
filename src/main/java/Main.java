@@ -4,6 +4,7 @@ import Storage.FileProvider;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,6 +20,7 @@ public class Main extends Application
 
     public static void main(String[] args)
     {
+        new File("files").mkdir();
         launch();
     }
 }

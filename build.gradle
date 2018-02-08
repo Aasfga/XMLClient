@@ -11,6 +11,7 @@ repositories {
 
 sourceSets {
     main {
+        output.resourcesDir = "build/classes/java/main"
         java {
             srcDirs= ["src/main/java"]
         }
