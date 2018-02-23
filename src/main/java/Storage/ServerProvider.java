@@ -66,11 +66,15 @@ public class ServerProvider implements Provider
     public void uploadFile(String filename, byte[] file) throws IOException, JAXBException
     {
         HttpURLConnection httpConnection = (HttpURLConnection) new URL(String.format("http://%s:%s/put/%s", SERVER, SERVER_PORT, filename)).openConnection();
+        httpConnection.setDoOutput(true);
         httpConnection.setRequestMethod("POST");
         try(OutputStream stream = httpConnection.getOutputStream())
         {
             stream.write(file);
         }
+        InputStream response = httpConnection.getInputStream();
+        int code = httpConnection.getResponseCode();
+
     }
 
     @Override
