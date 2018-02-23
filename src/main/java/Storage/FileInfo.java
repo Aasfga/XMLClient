@@ -1,11 +1,13 @@
 package Storage;
 
+import java.io.Serializable;
 import java.net.ConnectException;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Objects;
 
-public class FileInfo implements Comparable<FileInfo>
+public class FileInfo implements Comparable<FileInfo>, Serializable
 {
     private String filename;
     private GregorianCalendar date;
@@ -14,6 +16,7 @@ public class FileInfo implements Comparable<FileInfo>
     {
         this.filename = filename;
         this.date = date;
+        this.date.set(Calendar.MILLISECOND, 0);
     }
 
 
