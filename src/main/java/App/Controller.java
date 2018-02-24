@@ -89,7 +89,7 @@ public class Controller
             }
             catch(JAXBException e)
             {
-                view.showError(e.getMessage());
+                view.showError("JAXB error");
                 logger.warning("JAXB error: " + e.getMessage());
             }
             catch(IOException e)
