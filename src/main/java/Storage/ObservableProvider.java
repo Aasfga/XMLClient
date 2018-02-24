@@ -20,7 +20,7 @@ public class ObservableProvider implements Provider
     }
 
     @Override
-    public Collection<FileInfo> getFileNames() throws IOException
+    public Collection<FileInfo> getFileNames() throws Exception
     {
         Collection<FileInfo> files = provider.getFileNames();
         list.setAll(files);
@@ -28,14 +28,14 @@ public class ObservableProvider implements Provider
     }
 
     @Override
-    public void uploadFile(String filename, byte[] file) throws IOException, JAXBException
+    public void uploadFile(String filename, byte[] file) throws Exception
     {
         provider.uploadFile(filename, file);
         refresh();
     }
 
     @Override
-    public byte[] downloadFile(FileInfo info) throws IOException
+    public byte[] downloadFile(FileInfo info) throws Exception
     {
         return provider.downloadFile(info);
     }
@@ -45,7 +45,7 @@ public class ObservableProvider implements Provider
         return list.sorted();
     }
 
-    public void refresh() throws IOException
+    public void refresh() throws Exception
     {
         list.setAll(provider.getFileNames());
     }

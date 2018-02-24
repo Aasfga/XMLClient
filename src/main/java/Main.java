@@ -13,6 +13,18 @@ import java.util.logging.Logger;
 public class Main extends Application
 {
 
+    private static Logger appLogger = Logger.getLogger("AppLogger");
+
+    static
+    {
+        Level level = Level.ALL;
+        appLogger.setUseParentHandlers(false);
+        ConsoleHandler handler = new ConsoleHandler();
+        handler.setLevel(level);
+        appLogger.setLevel(level);
+        appLogger.addHandler(handler);
+    }
+
     @Override
     public void start(Stage primaryStage) throws Exception
     {
@@ -21,6 +33,8 @@ public class Main extends Application
 
     public static void main(String[] args)
     {
+        Controller.setLogger(appLogger);
+        ServerProvider.setLogger(appLogger);
         new File("files").mkdir();
         launch();
     }

@@ -1,31 +1,31 @@
 package Storage;
 
-import javax.xml.bind.JAXBException;
+import com.sun.corba.se.spi.activation.Server;
+
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.GregorianCalendar;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ServerProvider implements Provider
 {
-    final String SERVER = "localhost";
-    final String SERVER_PORT = "7070";
+    private final String SERVER = "localhost";
+    private final String SERVER_PORT = "7070";
+    private final String ADDRESS = String.format("http://%s:%s", SERVER, SERVER_PORT);
 
-    private static GregorianCalendar getDate(String stringDate)
+    private static Logger logger = Logger.getAnonymousLogger();
+
+    public static void setLogger(Logger logger)
     {
-        GregorianCalendar date = new GregorianCalendar();
-        String parts[] = stringDate.split(":");
-        Integer values[] = Arrays.stream(parts).map(Integer::valueOf).toArray(Integer[]::new);
-        date.set(values[0], values[1], values[2], values[3], values[4]);
-        date.set(Calendar.SECOND, Integer.valueOf(parts[5]));
-        return date;
+        ServerProvider.logger = logger;
     }
 
-    private byte[] extract(InputStream inputStream) throws IOException
+    private static byte[] extract(InputStream inputStream) throws IOException
     {
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
         byte[] buffer = new byte[1024];
@@ -36,61 +36,58 @@ public class ServerProvider implements Provider
         return byteStream.toByteArray();
     }
 
-    private static String createFileInfoURI(FileInfo info)
+    private static String getDateURIFragment(GregorianCalendar date)
     {
-        return info.getFilename() + ";" + convertToString(info.getDate());
-    }
-
-    private static String convertToString(GregorianCalendar date)
-    {
-        return String.format("%d:%d:%d:%d:%d:%d", date.get(Calendar.YEAR), date.get(Calendar.MONTH), date.get(Calendar.DAY_OF_MONTH), date.get(Calendar.HOUR_OF_DAY), date.get(Calendar.MINUTE), date.get(Calendar.SECOND));
-    }
-
-
-    @Override
-    public Collection<FileInfo> getFileNames() throws IOException
-    {
-        try
-        {
-            InputStream stream = new URL(String.format("http://%s:%s/list", SERVER, SERVER_PORT)).openStream();
-            Object o = new ObjectInputStream(stream).readObject();
-            return (Collection<FileInfo>) o;
-        }
-        catch(Exception e)
-        {
-            throw new IOException();
-        }
+        return String.format("%d:%d:%d:%d:%d:%d", date.get(Calendar.YEAR), date.get(Calendar.MONTH),
+                             date.get(Calendar.DAY_OF_MONTH), date.get(Calendar.HOUR_OF_DAY),
+                             date.get(Calendar.MINUTE), date.get(Calendar.SECOND));
     }
 
     @Override
-    public void uploadFile(String filename, byte[] file) throws IOException, JAXBException
+    public Collection<FileInfo> getFileNames() throws Exception
     {
-        HttpURLConnection httpConnection = (HttpURLConnection) new URL(String.format("http://%s:%s/put/%s", SERVER, SERVER_PORT, filename)).openConnection();
+        InputStream stream = new URL(ADDRESS + "/list").openStream();
+        Object o = new ObjectInputStream(stream).readObject();
+        if(o instanceof Exception)
+            throw (Exception) o;
+        return (Collection) o;
+    }
+
+    private void checkResponse(HttpURLConnection connection) throws Exception
+    {
+        byte responseBody[] = extract(connection.getInputStream());
+        if(responseBody.length == 0)
+            return;
+        Object o = new ObjectInputStream(new ByteArrayInputStream(responseBody)).readObject();
+        if(o instanceof Exception)
+            throw (Exception) o;
+        else
+            logger.info("Object with unknown type was received");
+    }
+
+    @Override
+    public void uploadFile(String filename, byte[] file) throws Exception
+    {
+        HttpURLConnection httpConnection = (HttpURLConnection) new URL(
+                String.format("%s/upload/%s", ADDRESS, filename)).openConnection();
         httpConnection.setDoOutput(true);
         httpConnection.setRequestMethod("POST");
         try(OutputStream stream = httpConnection.getOutputStream())
         {
             stream.write(file);
         }
-        InputStream response = httpConnection.getInputStream();
-        int code = httpConnection.getResponseCode();
-
+        checkResponse(httpConnection);
     }
 
     @Override
-    public byte[] downloadFile(FileInfo info) throws IOException
+    public byte[] downloadFile(FileInfo info) throws Exception
     {
-        try
-        {
-            InputStream stream = new URL(String.format("http://%s:%s/get/%s;%s",
-                                                       SERVER, SERVER_PORT,
-                                                       info.getFilename(),
-                                                       convertToString(info.getDate()))).openStream();
-            return extract(stream);
-        }
-        catch(Exception e)
-        {
-            throw new IOException();
-        }
+        String filename = info.getFilename();
+        String date = getDateURIFragment(info.getDate());
+        HttpURLConnection connection = (HttpURLConnection) new URL(
+                String.format("%s/download/%s;%s", ADDRESS, filename, date)).openConnection();
+        if(connection.getResponseCode() == 51)
+            checkResponse(connection);
+        return extract(connection.getInputStream());
     }
 }

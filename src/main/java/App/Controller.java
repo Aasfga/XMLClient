@@ -25,15 +25,13 @@ public class Controller
 {
     static Logger logger = Logger.getLogger("Controller");
 
-    static
+
+    public static void setLogger(Logger logger)
     {
-        Level level = Level.ALL;
-        logger.setUseParentHandlers(false);
-        ConsoleHandler handler = new ConsoleHandler();
-        handler.setLevel(level);
-        logger.setLevel(level);
-        logger.addHandler(handler);
+        Controller.logger = logger;
     }
+
+
 
     private ObservableProvider clientProvider;
     private ObservableProvider serverProvider;
@@ -94,9 +92,15 @@ public class Controller
                 view.showError(e.getMessage());
                 logger.warning("JAXB error: " + e.getMessage());
             }
+            catch(IOException e)
+            {
+                view.showError(e.getMessage());
+                logger.warning("IO error: " + e.getMessage());
+            }
             catch(Exception e)
             {
-                view.showError(String.format("%s: %s", e.getClass(), e.getMessage()));
+                view.showError("Unknown error");
+                logger.warning(String.format("%s: %s", e.getClass(), e.getMessage()));
             }
         };
     }
